@@ -39,11 +39,14 @@ def compress(r, three):
     U = np.empty((three['R'].shape[0], three['R'].shape[0]))
     for color, V in cache_eigens.items():
         for i in range(r):
-            print(cache_eigens[color][1][:[i]].shape)
-            # col = (1/cache_eigens[color][0][i]) * np.dot(three[color], cache_eigens[color][1][:i])
-            return "ok"
+            # print(cache_eigens[color][1][[i]].T.shape)
+            v = np.array([cache_eigens[color][1][[i]].T])
+            A = three[color]
+            sing = cache_eigens[color][0][i]
+            col = (1/sing) * np.dot(A, v)
             U = np.insert(U, i, col, axis=1)
-    return u
+    print('done')
+    return U
 
 
 def matrix_to_img(R,G,B):
