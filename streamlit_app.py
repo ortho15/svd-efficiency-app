@@ -36,8 +36,8 @@ rbg_eigens = func.eigens(R,G,B) # number of singular values ordered from biggest
 rank = min(len(rbg_eigens['R'][0]), len(rbg_eigens['G'][0]), len(rbg_eigens['B'][0]))
 start = rank-20
 chosen = st.slider("rank", 1, rank, start, 10)
-R = func.compress(chosen, three)
-l.image(R)
+func.compress(chosen, three)
+l.image('./assets/reduced.png')
 
 # TESTING!!!
 # TESTING!!!
