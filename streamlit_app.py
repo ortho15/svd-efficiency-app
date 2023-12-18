@@ -6,7 +6,7 @@ st.set_page_config(page_title='Image SVD Effiency Demonstration')
 #, page_icon = favicon, layout = 'wide', initial_sidebar_state = 'auto')
 
 # Globals
-image = "./assets/main.jpg"
+image = "./assets/plane.jpg"
 
 # Body
 
@@ -33,11 +33,10 @@ Original size: {og_size}
 """)
 
 rgb_eigens = func.eigens(R,G,B) # number of singular values ordered from biggest to smallest
+st.write(rgb_eigens['B'][0])
+top = max(og_size)
 # rank = min(len(rgb_eigens['R'][0]), len(rgb_eigens['G'][0]), len(rgb_eigens['B'][0]))
-st.write(rgb_eigens)
-rank = 200
-start = rank-20
-chosen = st.slider("rank", 1, rank, start, 10)
+chosen = st.slider("rank", 1, og_size[1], og_size[1]-20, 10)
 func.compress(chosen, three)
 l.image('./assets/reduced.png')
 
