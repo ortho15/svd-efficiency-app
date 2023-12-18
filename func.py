@@ -3,6 +3,8 @@ import math
 from PIL import Image
 
 cache_eigens = {}
+U = None
+Sig = None
 
 def jpg_to_RGB(file):
     img = Image.open(file)
@@ -36,7 +38,13 @@ def eigens(R,G,B):
     return cache_eigens # they are singular values now
 
 def compress(r, three):
-    U = np.empty((three['R'].shape[0], three['R'].shape[0]))
+    global U
+    global Sig
+    U = {
+        'R': np.empty((three['R'].shape[0], three['R'].shape[0])),
+        'G': np.empty((three['R'].shape[0], three['R'].shape[0])),
+        'B': np.empty((three['R'].shape[0], three['R'].shape[0])),
+    }
     for color, V in cache_eigens.items():
         for i in range(r):
             # print(cache_eigens[color][1][[i]].T.shape)
@@ -44,9 +52,30 @@ def compress(r, three):
             A = three[color]
             sing = cache_eigens[color][0][i]
             col = (1/sing) * np.dot(A, v)
-            U = np.insert(U, i, col, axis=1)
-    print('done')
-    return U
+            U[color] = np.insert(U[color], i, col, axis=1)
+        print(f"U color: {color} is done!")
+
+    Sig = {
+        'R': np.empty((three['R'].shape[0], three['R'].shape[1])),
+        'G': np.empty((three['R'].shape[0], three['R'].shape[1])),
+        'B': np.empty((three['R'].shape[0], three['R'].shape[1])),
+    }
+    for color, A in three.items():
+        for i in range(r):
+            Sig[color][i, i] = cache_eigens[color][0][i]
+    
+    reduced = {
+        "R": None,
+        "G": None,
+        "B": None
+    }
+    for color in three.keys():
+        print(U[color].shape)
+
+        reduced[color] = np.dot(U[color], Sig[color], cache_eigens[color][1].T)
+        print(f"finished dot color: {color}!")
+
+    matrix_to_img(reduced['R'], reduced['G'], reduced['B'])
 
 
 def matrix_to_img(R,G,B):
