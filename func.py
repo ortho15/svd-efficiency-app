@@ -3,8 +3,6 @@ import math
 from PIL import Image
 
 cache_eigens = {}
-U = None
-Sig = None
 
 def jpg_to_RGB(file):
     img = Image.open(file)
@@ -38,21 +36,24 @@ def eigens(R,G,B):
     return cache_eigens # they are singular values now
 
 def compress(r, three):
-    global U
-    global Sig
     U = {
         'R': np.empty((three['R'].shape[0], three['R'].shape[0])),
         'G': np.empty((three['R'].shape[0], three['R'].shape[0])),
         'B': np.empty((three['R'].shape[0], three['R'].shape[0])),
     }
-    for color, V in cache_eigens.items():
+    print(U['R'])
+    for color in three.keys():
         for i in range(r):
             # print(cache_eigens[color][1][[i]].T.shape)
-            v = np.array([cache_eigens[color][1][[i]].T])
+            v = cache_eigens[color][1][[i]].T
+            # print(f"vndim: {v.ndim}")
             A = three[color]
             sing = cache_eigens[color][0][i]
             col = (1/sing) * np.dot(A, v)
-            U[color] = np.insert(U[color], i, col, axis=1)
+            # print(col)
+            U[color][:,i] = np.squeeze(col)
+            # print(U[color])
+            return('ok')
         print(f"U color: {color} is done!")
 
     Sig = {
@@ -63,6 +64,7 @@ def compress(r, three):
     for color, A in three.items():
         for i in range(r):
             Sig[color][i, i] = cache_eigens[color][0][i]
+        print(f"Sigma {color} is done!")
     
     reduced = {
         "R": None,
