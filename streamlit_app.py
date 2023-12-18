@@ -32,8 +32,10 @@ r.write(f"""matrix_to_img
 Original size: {og_size}
 """)
 
-rbg_eigens = func.eigens(R,G,B) # number of singular values ordered from biggest to smallest
-rank = min(len(rbg_eigens['R'][0]), len(rbg_eigens['G'][0]), len(rbg_eigens['B'][0]))
+rgb_eigens = func.eigens(R,G,B) # number of singular values ordered from biggest to smallest
+# rank = min(len(rgb_eigens['R'][0]), len(rgb_eigens['G'][0]), len(rgb_eigens['B'][0]))
+st.write(rgb_eigens)
+rank = 200
 start = rank-20
 chosen = st.slider("rank", 1, rank, start, 10)
 func.compress(chosen, three)
