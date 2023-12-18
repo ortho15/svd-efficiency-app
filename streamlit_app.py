@@ -28,7 +28,6 @@ og_size = R.shape
 # CORE
 l, r = st.columns([0.8, 0.2])
 
-# l.image(reduced)
 r.write(f"""matrix_to_img
 Original size: {og_size}
 """)
@@ -37,8 +36,8 @@ rbg_eigens = func.eigens(R,G,B) # number of singular values ordered from biggest
 rank = min(len(rbg_eigens['R'][0]), len(rbg_eigens['G'][0]), len(rbg_eigens['B'][0]))
 start = rank-20
 chosen = st.slider("rank", 1, rank, start, 10)
-U = func.compress(chosen, three)
+R = func.compress(chosen, three)
+l.image(R)
 
 # TESTING!!!
-st.write(U)
 # TESTING!!!
