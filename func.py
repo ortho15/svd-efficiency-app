@@ -25,7 +25,7 @@ def eigens(R,G,B):
     for color, A in three.items():
         AtA = np.dot(A.T, A)
         assert np.allclose(AtA.T, AtA)
-        eigenValues, eigenVectors = np.linalg.eigh(AtA) # eigenVecs might already be transposed
+        eigenValues, eigenVectors = np.linalg.eigh(AtA)
         idx = eigenValues.argsort()[::-1] # argsort produces ascending index, reversed to be descending
 
         eigenValuesSorted = eigenValues[idx] # now eigens are descending
@@ -73,7 +73,6 @@ def compress(r, three, cache_SVt):
                 Sig[color][i, i] = cache_SVt[color][0][i]
             except IndexError:
                 break
-        # print(f"Sigma {color} is done!")
     
     reduced = {
         "R": np.empty((m,n), dtype=np.float64),
@@ -82,11 +81,6 @@ def compress(r, three, cache_SVt):
     }
     for color in three.keys():
         reduced[color] = np.linalg.multi_dot([U[color], Sig[color], cache_SVt[color][1]])
-
-    Us, S, Vt = np.linalg.svd(three['R'])
-    # print("Vt", Vt[:,[0]][0:5])
-    # print("Vt", Vt[0,:][0:5])
-    # print(cache_SVt[color][1][:,[0]][0:5])
 
     matrix_to_img(reduced['R'], reduced['G'], reduced['B'])
 
@@ -97,4 +91,4 @@ def matrix_to_img(R,G,B):
     full[:, :, 2] = B
     img = Image.fromarray(full)
     img.save('./assets/reduced.png')
-    # return './assets/reduced.png'
+    return './assets/reduced.png'
