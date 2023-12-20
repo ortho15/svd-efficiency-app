@@ -10,14 +10,14 @@ st.set_page_config(page_title='Image SVD Effiency Demonstration')
 # Body
 st.markdown("# Image SVD Effiency Demonstration")
 
-user_img = st.file_uploader(label="Upload your own jpg image to test!", type=["png", "jpg"])
+user_img = st.file_uploader(label="Upload your own jpg image to test!", type=["png"])
 image = None
 if user_img:
-    with open("./assets/user.jpg", 'wb') as f:
+    with open("./assets/user.png", 'wb') as f:
         f.write(user_img.getvalue())
-    image = "./assets/user.jpg"
+    image = "./assets/user.png"
 else:
-    image = "./assets/milan.jpg"
+    image = "./assets/milan.png"
 
 st.markdown("## Original Image")
 st.image(image)
