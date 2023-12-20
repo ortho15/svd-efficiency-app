@@ -32,12 +32,11 @@ r.write(f"""matrix_to_img
 Original size: {og_size}
 """)
 
-rgb_eigens = func.eigens(R,G,B) # number of singular values ordered from biggest to smallest
-st.write(rgb_eigens['B'][0])
+cache_SVt = func.eigens(R,G,B) # number of singular values ordered from biggest to smallest
 top = max(og_size)
 # rank = min(len(rgb_eigens['R'][0]), len(rgb_eigens['G'][0]), len(rgb_eigens['B'][0]))
 chosen = st.slider("rank", 1, og_size[1], og_size[1]-20, 10)
-func.compress(chosen, three)
+func.compress(chosen, three, cache_SVt)
 l.image('./assets/reduced.png')
 
 # TESTING!!!

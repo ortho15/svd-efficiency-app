@@ -2,8 +2,6 @@ import numpy as np
 import math
 from PIL import Image
 
-cache_eigens = {}
-
 def jpg_to_RGB(file):
     img = Image.open(file)
     R = np.array(img)[:,:,0]
@@ -17,27 +15,34 @@ def jpg_to_RGB(file):
     return R,G,B
 
 def eigens(R,G,B):
-    global cache_eigens
     three = {
             'R': R,
             'G': G,
             'B': B
             }
+    cache_SVt = {}
+
     for color, A in three.items():
         AtA = np.dot(A.T, A)
         assert np.allclose(AtA.T, AtA)
-        eigenValues, eigenVectors = np.linalg.eigh(AtA)
-        idx = eigenValues.argsort()[::-1]
-        eigenValues = eigenValues[idx]
-        eigenVectors = eigenVectors[:,idx]
-        eigenValues = [math.sqrt(x) for x in eigenValues if x > 0]
-        # eigenValues = eigenValues + [0] * (A.shape[0] - len(eigenValues))
+        eigenValues, eigenVectors = np.linalg.eigh(AtA) # eigenVecs might already be transposed
+        idx = eigenValues.argsort()[::-1] # argsort produces ascending index, reversed to be descending
+
+        eigenValuesSorted = eigenValues[idx] # now eigens are descending
+        Singulars = [math.sqrt(x) for x in eigenValuesSorted if x > 0] # throw away negative eigenvalues as they don't matter
+
+        V = eigenVectors[:,idx] # sorts the eigen vector columns with respect to the descending eigenvalues, keeping the columns of eigens
         
-        cache_eigens[color] = (eigenValues, eigenVectors)
+        cache_SVt[color] = (Singulars, V.T)
+    
+    Us, S, Vt = np.linalg.svd(three['R'])
+    print("Vt:", Vt[np.ix_([0,1,2,3,4,5],[0])])
+    print("cache_SVt", cache_SVt['R'][1].T[np.ix_([0,1,2,3,4,5],[0])])
 
-    return cache_eigens # they are singular values now
 
-def compress(r, three):
+    return cache_SVt # they are singular values and associated V transposed
+
+def compress(r, three, cache_SVt):
     m = int(three['R'].shape[0])
     n = int(three['R'].shape[1])
     # print(m)
@@ -49,23 +54,14 @@ def compress(r, three):
     for color in three.keys():
         A = three[color]
         for i in range(m):
-            # print(cache_eigens[color][1][[i]].T.shape)
-            # print(f"vndim: {v.ndim}")
             try:
-                sing = cache_eigens[color][0][i]
-                v = cache_eigens[color][1][[i]].T
-                if i == 0:
-                    print(f"sing: {sing}")
+                sing = cache_SVt[color][0][i] # gives the nth singular values
+                v = cache_SVt[color][1].T[:,[i]] # gives a nth column vector of Vt
             except IndexError:
-                break
+                break # break the creation of u_n since singular values are unavailable / ~0
             col = (1/sing) * np.dot(A, v)
-            if i == 0:
-                    print(f"col:\n{col[0]}")
-            U[color][:,i] = np.squeeze(col)
-            # print(U[color][:,0])
-        # print(f"U color: {color} is done!")
+            U[color][:,[i]] = col
 
-    m
     Sig = {
         'R': np.zeros((m,n), dtype=np.float64),
         'G': np.zeros((m,n), dtype=np.float64),
@@ -74,7 +70,7 @@ def compress(r, three):
     for color, A in three.items():
         for i in range(r):
             try:
-                Sig[color][i, i] = cache_eigens[color][0][i]
+                Sig[color][i, i] = cache_SVt[color][0][i]
             except IndexError:
                 break
         # print(f"Sigma {color} is done!")
@@ -85,32 +81,13 @@ def compress(r, three):
         "B": np.empty((m,n), dtype=np.float64)
     }
     for color in three.keys():
-        # print("U", U[color].shape, U[color].ndim)
-        # print("Sig", Sig[color].shape, Sig[color].ndim)
-        # print("V", cache_eigens[color][1].T.shape, cache_eigens[color][1].T.ndim)
-        reduced[color] = np.linalg.multi_dot([U[color], Sig[color], cache_eigens[color][1].T])
-        # print(f"finished dot color: {color}!")
+        reduced[color] = np.linalg.multi_dot([U[color], Sig[color], cache_SVt[color][1]])
 
-    # print("Reduced R", reduced['R'].shape)
-    # print("Reduced G", reduced['G'].shape)
-    # print("Reduced B", reduced['B'].shape)
-
-    # reduced = {
-    #     "R": None,
-    #     "G": None,
-    #     "B": None
-    # }
     Us, S, Vt = np.linalg.svd(three['R'])
-    print("their", S[:2])
-    print("mine", cache_eigens['R'][0][:2])
-    print("mine sigma", Sig['R'][0,0])
-    print(Us[:,0][0])
-    print(U['R'][:,0][0])
-    print("Vt", Vt[:,0][0:2])
-    print(cache_eigens[color][1][i].T[0:2])
-        # reduced[color] = np.linalg.multi_dot([U, Sig, Vt])
+    # print("Vt", Vt[:,[0]][0:5])
+    # print("Vt", Vt[0,:][0:5])
+    # print(cache_SVt[color][1][:,[0]][0:5])
 
-    # matrix_to_img(reduced['R'], reduced['G'], reduced['B'])
     matrix_to_img(reduced['R'], reduced['G'], reduced['B'])
 
 def matrix_to_img(R,G,B):
