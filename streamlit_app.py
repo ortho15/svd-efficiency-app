@@ -17,7 +17,7 @@ if user_img:
         f.write(user_img.getvalue())
     image = "./assets/user.jpg"
 else:
-    image = "./assets/plane.jpg"
+    image = "./assets/milan.jpg"
 
 st.markdown("## Original Image")
 st.image(image)
@@ -36,6 +36,13 @@ og_size = R.shape
 
 l, r = st.columns([0.8, 0.2])
 
+cache_SVt = func.eigens(R,G,B) # number of singular values ordered from biggest to smallest
+top = max(og_size)
+# rank = min(len(rgb_eigens['R'][0]), len(rgb_eigens['G'][0]), len(rgb_eigens['B'][0]))
+chosen = st.slider("rank", 1, og_size[1], og_size[1]-20, 10)
+func.compress(chosen, three, cache_SVt)
+l.image('./assets/reduced.png')
+
 osize = round(os.stat(image).st_size / 1024)
 rsize = round(os.stat("./assets/reduced.png").st_size / 1024)
 r.write(f"""
@@ -44,10 +51,3 @@ Original file size: {osize} KiB \n
 Reduced file size: {rsize} KiB \n
 Percentage difference: {round(((rsize - osize) / osize)*100)} %
 """)
-
-cache_SVt = func.eigens(R,G,B) # number of singular values ordered from biggest to smallest
-top = max(og_size)
-# rank = min(len(rgb_eigens['R'][0]), len(rgb_eigens['G'][0]), len(rgb_eigens['B'][0]))
-chosen = st.slider("rank", 1, og_size[1], og_size[1]-20, 10)
-func.compress(chosen, three, cache_SVt)
-l.image('./assets/reduced.png')
